@@ -1,25 +1,33 @@
 ﻿#if UNITY_EDITOR
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System;
 using Extensions;
 using UnityEditor;
-using IRLFriend;
+using Worms;
+using System.IO;
 
 [RequireComponent(typeof(SpriteRenderer))]
-public class MakeSpriteFromCollider2D : EditorScript
+[ExecuteInEditMode]
+public class MakeSpriteFromCollider2D : MonoBehaviour
 {
+	public float colliderChecksPerDistUnit;
+	public SpriteRenderer spriteRenderer;
 	public new Collider2D collider;
-	public Vector2Int colliderChecks;
 	public Behaviour behaviour;
-	public string assetPath;
+	public Sprite sprite;
 	public bool checkDiagonals;
 	public float outlineRadius;
 	public int textureBorder;
 	BoxCollider2D boxCollider;
 	float boxColliderEdgeRadius;
 	Bounds colliderBounds;
+	Vector2Int colliderChecks;
+	public string spriteAssetPath;
+	public string textureAssetPath;
+	public bool makeAssetPathsUnique;
+	public bool update;
 
 	public virtual void Start ()
 	{
@@ -31,9 +39,16 @@ public class MakeSpriteFromCollider2D : EditorScript
 		}
 	}
 
-	public virtual void Make ()
+	public virtual void Update ()
 	{
-		Color[] colors = new Color[(colliderChecks.x + textureBorder * 2) * (colliderChecks.y + textureBorder * 2)];
+		if (!update || Application.isPlaying)
+			return;
+		update = false;
+		Do ();
+	}
+
+	public virtual void Do ()
+	{
 		Vector2Int[] outlinePositions = new Vector2Int[0];
 		bool foundCollider;
 		bool foundNoCollider;
@@ -45,6 +60,8 @@ public class MakeSpriteFromCollider2D : EditorScript
 			colliderBounds.Expand(Vector2.one * boxColliderEdgeRadius * 2);
 			boxCollider.edgeRadius = 0;
 		}
+		colliderChecks = (colliderBounds.size * colliderChecksPerDistUnit).ToVec2Int();
+		Color[] colors = new Color[(colliderChecks.x + textureBorder * 2) * (colliderChecks.y + textureBorder * 2)];
 		for (int x = 0; x < colliderChecks.x + textureBorder * 2; x ++)
 		{
 			for (int y = 0; y < colliderChecks.y + textureBorder * 2; y ++)
@@ -93,14 +110,41 @@ public class MakeSpriteFromCollider2D : EditorScript
 				}
 			}
 		}
-		Texture2D texture = Instantiate(Texture2D.blackTexture);
-		texture.Resize(colliderChecks.x + textureBorder * 2, colliderChecks.y + textureBorder * 2);
+		Texture2D texture = new Texture2D(colliderChecks.x + textureBorder * 2, colliderChecks.y + textureBorder * 2);
 		texture.SetPixels(colors);
 		texture.Apply();
-		Sprite sprite = Sprite.Create(texture, Rect.MinMaxRect(0, 0, colliderChecks.x + textureBorder * 2, colliderChecks.y + textureBorder * 2), Vector2.one / 2);
-		AssetDatabase.CreateAsset(sprite, assetPath);
+		if (makeAssetPathsUnique)
+		{
+			string newAssetPath = textureAssetPath;
+			while (File.Exists(newAssetPath))
+				newAssetPath = newAssetPath.Replace(".asset", "1.asset");
+			textureAssetPath = newAssetPath;
+			AssetDatabase.CreateAsset(texture, newAssetPath);
+		}
+		else
+			AssetDatabase.CreateAsset(texture, textureAssetPath);
+		AssetDatabase.Refresh();
+		sprite = Sprite.Create(texture, Rect.MinMaxRect(0, 0, colliderChecks.x + textureBorder * 2, colliderChecks.y + textureBorder * 2), Vector2.one / 2, colliderChecksPerDistUnit);
+		if (makeAssetPathsUnique)
+		{
+			string newAssetPath = spriteAssetPath;
+			while (File.Exists(newAssetPath))
+				newAssetPath = newAssetPath.Replace(".asset", "1.asset");
+			spriteAssetPath = newAssetPath;
+			AssetDatabase.CreateAsset(sprite, newAssetPath);
+		}
+		else
+			AssetDatabase.CreateAsset(sprite, spriteAssetPath);
+		AssetDatabase.Refresh();
 		if (boxCollider != null)
 			boxCollider.edgeRadius = boxColliderEdgeRadius;
+		if (spriteRenderer != null)
+		{
+			spriteRenderer.sprite = sprite;
+			Transform trs = spriteRenderer.GetComponent<Transform>();
+			trs.SetWorldScale (Vector3.one);
+			trs.position = collider.GetCenter();
+		}
 	}
 
 	public virtual bool CheckForCollider (Vector2Int checkPosition)
