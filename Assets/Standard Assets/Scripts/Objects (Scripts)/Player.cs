@@ -23,6 +23,7 @@ namespace Worms
 		public Texture2D stampTexture;
 		public Transform headTrs;
 		public PolygonCollider2D headCollider;
+		public float multiplyStampSize;
 		public bool PauseWhileUnfocused
 		{
 			get
@@ -30,6 +31,7 @@ namespace Worms
 				return false;
 			}
 		}
+		Vector2 headSize;
 
 		public virtual void Start ()
 		{
@@ -47,6 +49,7 @@ namespace Worms
 				lineRenderer.SetPosition(i, vertex);
 			}
 			edgeCollider.points = localVerticies;
+			headSize = RectExtensions.FromPoints(headCollider.points).size.Multiply(headTrs.lossyScale);
 			GameManager.updatables = GameManager.updatables.Add(this);
 		}
 
@@ -84,7 +87,8 @@ namespace Worms
 			for (int i = 0; i < vertexCount; i ++)
 				lineRenderer.SetPosition(i, localVerticies[i]);
 			edgeCollider.points = localVerticies;
-			D2dStamp.All(D2dDestructible.PaintType.Cut, headTrs.position, headCollider.bounds.size, headTrs.eulerAngles.z, stampTexture, Color.white);
+			if (move != Vector2.zero)
+				D2dStamp.All(D2dDestructible.PaintType.Cut, headTrs.position, headSize * multiplyStampSize, headTrs.eulerAngles.z, stampTexture, Color.white);
 		}
 
 		public virtual bool IsFalling ()

@@ -129,5 +129,24 @@ namespace Extensions
 			output.center = rect.center;
 			return output;
 		}
+
+		public static Rect FromPoints (params Vector2[] points)
+		{
+			Vector2 point = points[0];
+			Rect output = Rect.MinMaxRect(point.x, point.y, point.x, point.y);
+			for (int i = 1; i < points.Length; i ++)
+			{
+				point = points[i];
+				if (point.x < output.min.x)
+					output.min = new Vector2(point.x, output.min.y);
+				if (point.y < output.min.y)
+					output.min = new Vector2(output.min.x, point.y);
+				if (point.x > output.max.x)
+					output.max = new Vector2(point.x, output.max.y);
+				if (point.y > output.max.y)
+					output.max = new Vector2(output.max.x, point.y);
+			}
+			return output;
+		}
 	}
 }
