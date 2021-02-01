@@ -56,11 +56,6 @@ namespace Extensions
 				return minIsOk || maxIsOk;
 			}
 		}
-		
-		public static Rect ToRect (this Bounds bounds)
-		{
-			return Rect.MinMaxRect(bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y);
-		}
 
 		public static Rect Combine (params Rect[] rectsArray)
 		{

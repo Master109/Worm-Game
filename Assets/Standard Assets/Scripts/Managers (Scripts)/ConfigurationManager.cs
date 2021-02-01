@@ -59,17 +59,17 @@ namespace Worms
 		#endif
 		public static void MakeConfigFile ()
 		{
-			if (File.Exists(GameManager.GetSingleton<ConfigurationManager>().configFilePath))
-				File.Delete(GameManager.GetSingleton<ConfigurationManager>().configFilePath);
-			fileWriter = File.CreateText(GameManager.GetSingleton<ConfigurationManager>().configFilePath);
+			if (File.Exists(instance.configFilePath))
+				File.Delete(instance.configFilePath);
+			fileWriter = File.CreateText(instance.configFilePath);
 			string[] config;
 			List<string> finishedCategories = new List<string>();
-			foreach (string category in GameManager.GetSingleton<ConfigurationManager>().configurableCatergories.Values)
+			foreach (string category in instance.configurableCatergories.Values)
 			{
 				if (!finishedCategories.Contains(category))
 				{
 					fileWriter.WriteLine(CATEGORY_SEPERATOR + category + CATEGORY_SEPERATOR);
-					foreach (IConfigurable configurable in GameManager.GetSingleton<ConfigurationManager>().configurableCatergories.Keys)
+					foreach (IConfigurable configurable in instance.configurableCatergories.Keys)
 					{
 						if (configurable.Category == category)
 						{
@@ -90,11 +90,11 @@ namespace Worms
 		#endif
 		public static void ApplyConfigFile ()
 		{
-			fileReader = File.OpenText(GameManager.GetSingleton<ConfigurationManager>().configFilePath);
-			foreach (string category in GameManager.GetSingleton<ConfigurationManager>().configurableCatergories.Values)
+			fileReader = File.OpenText(instance.configFilePath);
+			foreach (string category in instance.configurableCatergories.Values)
 			{
 				fileReader.ReadLine();
-				foreach (IConfigurable configurable in GameManager.GetSingleton<ConfigurationManager>().configurableCatergories.Keys)
+				foreach (IConfigurable configurable in instance.configurableCatergories.Keys)
 				{
 					if (configurable.Category == category)
 					{

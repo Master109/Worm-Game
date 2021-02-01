@@ -11,7 +11,7 @@ namespace Worms
 	GameObjects registered in the "spawnEntries" member of this class are instantiated ahead of time and
 	deactivated (".SetActive(false);"), and then when they are needed they are activated (".SetActive(true);")
 	*/
-	public class ObjectPool : MonoBehaviour
+	public class ObjectPool : SingletonMonoBehaviour<ObjectPool>
 	{
 		public bool preloadOnAwake = true;
 		public Transform trs;
@@ -20,10 +20,11 @@ namespace Worms
 		public RangedDespawn[] rangedDespawns = new RangedDespawn[0];
 		public SpawnedEntry[] spawnedEntries = new SpawnedEntry[0];
 		
-		public virtual void Awake ()
+		public override void Awake ()
 		{
+			base.Awake ();
+			instance = this;
 			enabled = false;
-			GameManager.GetSingleton<ObjectPool>();
 			gameObject.SetActive(false);
 			if (!preloadOnAwake)
 				return;

@@ -60,12 +60,12 @@ namespace Worms
 		[MenuItem("Build/Make Builds")]
 		public static void Build ()
 		{
-			GameManager.GetSingleton<BuildManager>()._Build ();
+			Instance._Build ();
 		}
 
 		public virtual void _Build ()
 		{
-			GameManager.GetSingleton<BuildManager>().versionIndex ++;
+			versionIndex ++;
 			foreach (BuildAction buildAction in buildActions)
 			{
 				if (buildAction.enabled)
@@ -88,14 +88,15 @@ namespace Worms
 			
 			public virtual void Do ()
 			{
-				if (GameManager.GetSingleton<BuildManager>().versionNumberText != null)
-					GameManager.GetSingleton<BuildManager>().versionNumberText.text = GameManager.GetSingleton<BuildManager>().versionNumberPrefix + DateTime.Now.Date.ToString("MMdd");
-				if (GameManager.GetSingleton<ConfigurationManager>() != null)
-					GameManager.GetSingleton<ConfigurationManager>().canvas.gameObject.SetActive(false);
+				if (Instance.versionNumberText != null)
+					instance.versionNumberText.text = instance.versionNumberPrefix + DateTime.Now.Date.ToString("MMdd");
+				if (ConfigurationManager.Instance != null)
+					ConfigurationManager.instance.canvas.gameObject.SetActive(false);
 				EditorSceneManager.MarkAllScenesDirty();
 				EditorSceneManager.SaveOpenScenes();
-				while (GameManager.GetSingleton<EditorScript>() != default(EditorScript) || GameManager.GetSingleton<EditorScript>() != null)
-					DestroyImmediate(GameManager.GetSingleton<EditorScript>());
+				EditorScript[] editorScripts = FindObjectsOfType<EditorScript>();
+				for (int i = 0; i < editorScripts.Length; i ++)
+					DestroyImmediate(editorScripts[i]);
 				buildOptions = new BuildPlayerOptions();
 				buildOptions.scenes = GetScenePathsInBuild();
 				buildOptions.target = target;
@@ -103,8 +104,8 @@ namespace Worms
 				foreach (BuildOptions option in options)
 					buildOptions.options |= option;
 				BuildPipeline.BuildPlayer(buildOptions);
-				if (GameManager.GetSingleton<ConfigurationManager>() != null)
-					GameManager.GetSingleton<ConfigurationManager>().canvas.gameObject.SetActive(true);
+				if (ConfigurationManager.Instance != null)
+					ConfigurationManager.instance.canvas.gameObject.SetActive(true);
 				AssetDatabase.Refresh();
 				if (moveCrashHandler)
 				{

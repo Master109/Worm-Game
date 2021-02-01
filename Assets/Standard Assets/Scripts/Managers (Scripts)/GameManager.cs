@@ -130,7 +130,7 @@ namespace Worms
 #endif
 			if (BuildManager.IsFirstStartup)
 			{
-				if (GetSingleton<BuildManager>().clearDataOnFirstStartup)
+				if (BuildManager.Instance.clearDataOnFirstStartup)
 					PlayerPrefs.DeleteAll();
 				BuildManager.IsFirstStartup = false;
 			}
@@ -146,7 +146,7 @@ namespace Worms
 				foreach (GameModifier gameModifier in gameModifiers)
 					gameModifiersDict.Add(gameModifier.name, gameModifier);
 			}
-			if (GetSingleton<GameManager>() != this)
+			if (instance != this)
 				return;
 			UpdateDropdowns ();
 			if (cursorEntries.Length > 0)
@@ -186,12 +186,13 @@ namespace Worms
 			// {
 				if (Time.frameCount <= LAG_FRAMES_AFTER_LOAD_SCENE)
 					return;
-				Physics2D.Simulate(Time.deltaTime);
+				// Physics2D.Simulate(Time.deltaTime);
 				foreach (IUpdatable updatable in updatables)
 					updatable.DoUpdate ();
-				if (GetSingleton<ObjectPool>() != null && GetSingleton<ObjectPool>().enabled)
-					GetSingleton<ObjectPool>().DoUpdate ();
-				activeCursorEntry.rectTrs.position = Input.mousePosition;
+				Physics2D.Simulate(Time.deltaTime);
+				if (ObjectPool.instance != null && ObjectPool.instance.enabled)
+					ObjectPool.instance.DoUpdate ();
+				// activeCursorEntry.rectTrs.position = Input.mousePosition;
 				framesSinceLoadedScene ++;
 				if (InputManager.inputter.GetButtonDown("Reset"))
 					ReloadActiveScene ();
@@ -204,46 +205,9 @@ namespace Worms
 
 		public virtual void OnSceneLoaded (Scene scene = new Scene(), LoadSceneMode loadMode = LoadSceneMode.Single)
 		{
-			GetSingleton<SaveAndLoadManager>().Load ();
+			SaveAndLoadManager.instance.Load ();
 			// SetGosActive ();
 			// PauseGame (false);
-		}
-
-		public static T GetSingleton<T> ()
-		{
-			if (!singletons.ContainsKey(typeof(T)))
-				return GetSingleton<T>(FindObjectsOfType<Object>());
-			else
-			{
-				if (singletons[typeof(T)] == null || singletons[typeof(T)].Equals(default(T)))
-				{
-					T singleton = GetSingleton<T>(FindObjectsOfType<Object>());
-					singletons[typeof(T)] = singleton;
-					return singleton;
-				}
-				else
-					return (T) singletons[typeof(T)];
-			}
-		}
-
-		public static T GetSingleton<T> (Object[] objects)
-		{
-			if (typeof(T).IsSubclassOf(typeof(Object)))
-			{
-				foreach (Object obj in objects)
-				{
-					if (obj is T)
-					{
-						singletons.Remove(typeof(T));
-						singletons.Add(typeof(T), obj);
-						break;
-					}
-				}
-			}
-			if (singletons.ContainsKey(typeof(T)))
-				return (T) singletons[typeof(T)];
-			else
-				return default(T);
 		}
 
 		public virtual void _LoadScene (string name)
@@ -264,7 +228,7 @@ namespace Worms
 
 		public virtual void ReloadActiveScene ()
 		{
-			GetSingleton<SaveAndLoadManager>().Save ();
+			SaveAndLoadManager.instance.Save ();
 			LoadScene (SceneManager.GetActiveScene().name);
 		}
 
@@ -287,7 +251,7 @@ namespace Worms
 
 		public virtual void OnApplicationQuit ()
 		{
-			GetSingleton<SaveAndLoadManager>().Save ();
+			SaveAndLoadManager.Instance.Save ();
 		}
 
 		public virtual void OnApplicationFocus (bool isFocused)
@@ -434,7 +398,7 @@ namespace Worms
 			// 		return false;
 			// }
 			// return true;
-			return !GetSingleton<EventSystem>().IsPointerOverGameObject();
+			return !FindObjectOfType<EventSystem>().IsPointerOverGameObject();
 		}
 
 		public virtual void Minimize ()

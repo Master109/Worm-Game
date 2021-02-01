@@ -2,12 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Extensions;
-using Destructible2D;
+using UnityEngine.Tilemaps;
 
 namespace Worms
 {
-	public class Player : MonoBehaviour, IUpdatable
+	public class Player : SingletonMonoBehaviour<Player>, IUpdatable
 	{
+		public bool PauseWhileUnfocused
+		{
+			get
+			{
+				return false;
+			}
+		}
 		public Transform trs;
 		public Rigidbody2D rigid;
 		public LineRenderer lineRenderer;
@@ -20,18 +27,11 @@ namespace Worms
 		Vector2 previousHeadLocalVertex;
 		float localVertexDistance;
 		public float crashCheckDistance;
-		public Texture2D stampTexture;
 		public Transform headTrs;
 		public PolygonCollider2D headCollider;
-		public float multiplyStampSize;
-		public bool PauseWhileUnfocused
-		{
-			get
-			{
-				return false;
-			}
-		}
-		Vector2 headSize;
+		public int headCheckTileRange;
+		public LineSegment2D[] headLineSegments = new LineSegment2D[0];
+		// public RectInt headCheckTileRect;
 
 		public virtual void Start ()
 		{
@@ -41,15 +41,13 @@ namespace Worms
 			lineRenderer.positionCount = vertexCount;
 			localVerticies = new Vector2[vertexCount];
 			localVertexDistance = 1f / (vertexCount - 1) * length;
-			Vector2 vertex;
 			for (int i = 0; i < vertexCount; i ++)
 			{
-				vertex = -trs.up * localVertexDistance * i;
+				Vector2 vertex = -trs.up * localVertexDistance * i;
 				localVerticies[i] = vertex;
 				lineRenderer.SetPosition(i, vertex);
 			}
 			edgeCollider.points = localVerticies;
-			headSize = RectExtensions.FromPoints(headCollider.points).size.Multiply(headTrs.lossyScale);
 			GameManager.updatables = GameManager.updatables.Add(this);
 		}
 
@@ -60,16 +58,17 @@ namespace Worms
 
 		public virtual void HandleMovement ()
 		{
-			Move (InputManager.GetAxis2D("Move Horizontal", "Move Vertical"));
+			// Move (InputManager.GetAxis2D("Move Horizontal", "Move Vertical"));
+			Move (Vector2.ClampMagnitude(GameCamera.instance.camera.ScreenToWorldPoint(Input.mousePosition) - GameCamera.instance.camera.ViewportToWorldPoint(Vector2.one / 2), 1));
 		}
 
 		public virtual void Move (Vector2 move)
 		{
-			float moveAmount = moveSpeed * Time.deltaTime;
 			if (IsFalling())
 			// if (Physics2D.Raycast((Vector2) trs.position + localVerticies[0] + (move.normalized * (width / 2 + crashCheckDistance)), move, moveAmount, LayerMask.GetMask("Player", "Wall")).collider != null || IsFalling())
 				return;
 			Vector2 headLocalVertex = localVerticies[0];
+			float moveAmount = moveSpeed * Time.deltaTime;
 			headLocalVertex += move * moveAmount;
 			localVerticies[0] = headLocalVertex;
 			float moveDistance = Vector2.Distance(headLocalVertex, previousHeadLocalVertex);
@@ -88,7 +87,42 @@ namespace Worms
 				lineRenderer.SetPosition(i, localVerticies[i]);
 			edgeCollider.points = localVerticies;
 			if (move != Vector2.zero)
-				D2dStamp.All(D2dDestructible.PaintType.Cut, headTrs.position, headSize * multiplyStampSize, headTrs.eulerAngles.z, stampTexture, Color.white);
+				DestroyTerrain ();
+		}
+
+		void DestroyTerrain ()
+		{
+			headLineSegments[0] = new LineSegment2D(headTrs.TransformPoint(headCollider.points[0]), headTrs.TransformPoint(headCollider.points[1]));
+			headLineSegments[1] = new LineSegment2D(headTrs.TransformPoint(headCollider.points[1]), headTrs.TransformPoint(headCollider.points[2]));
+			Vector3Int headCellPosition = World.Instance.tilemap.WorldToCell(headTrs.position);
+			List<Vector3Int> cellPositions = new List<Vector3Int>();
+			for (int x = headCellPosition.x - headCheckTileRange; x < headCellPosition.x + headCheckTileRange; x ++)
+			{
+				for (int y = headCellPosition.y - headCheckTileRange; y < headCellPosition.y + headCheckTileRange; y ++)
+				{
+					for (int i = 0; i < headLineSegments.Length; i ++)
+					{
+						LineSegment2D headLineSegment = headLineSegments[i];
+						if (headLineSegment.DoIIntersectWith(World.instance.CellToRect(new Vector2Int(x, y))))
+							cellPositions.Add(new Vector3Int(x, y, 0));
+					}
+				}
+			}
+			if (cellPositions.Count > 0)
+			{
+				World.instance.tilemap.SetTiles(cellPositions.ToArray(), new TileBase[cellPositions.Count]);
+				for (int i = 0; i < World.tilemaps.Count; i ++)
+				{
+					Tilemap tilemap = World.tilemaps[i];
+					World.Island[] islands = World.instance.GetIslands(tilemap, false);
+					for (int i2 = 0; i2 < islands.Length; i2 ++)
+					{
+						World.Island island = islands[i2];
+						if (!World.tilemaps.Contains(island.tilemap))
+							island.Split();
+					}
+				}
+			}
 		}
 
 		public virtual bool IsFalling ()

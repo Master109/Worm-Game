@@ -78,8 +78,8 @@ namespace Worms
 
 		public static Vector2 GetWorldMousePosition ()
 		{
-			Rect gameViewRect = GameManager.GetSingleton<GameManager>().gameViewRectTrs.GetWorldRect();
-			return GameManager.GetSingleton<GameCamera>().camera.ViewportToWorldPoint(gameViewRect.ToNormalizedPosition(Input.mousePosition));
+			Rect gameViewRect = GameManager.instance.gameViewRectTrs.GetWorldRect();
+			return GameCamera.instance.camera.ViewportToWorldPoint(gameViewRect.ToNormalizedPosition(Input.mousePosition));
 		}
 	}
 

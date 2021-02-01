@@ -7,6 +7,16 @@ namespace Worms
 {
 	public class GameCamera : CameraScript, IUpdatable
 	{
+		public new static GameCamera instance;
+		public new static GameCamera Instance
+		{
+			get
+			{
+				if (instance == null)
+					instance = FindObjectOfType<GameCamera>();
+				return instance;
+			}
+		}
 		public bool PauseWhileUnfocused
 		{
 			get
@@ -17,7 +27,9 @@ namespace Worms
 		
 		public override void Awake ()
 		{
+			Player.instance = Player.Instance;
 			base.Awake ();
+			instance = this;
 #if UNITY_EDITOR
 			if (!Application.isPlaying)
 				return;
@@ -43,7 +55,7 @@ namespace Worms
 		public override void HandlePosition ()
 		{
 			base.HandlePosition ();
-			trs.position = trs.position.SetY(GameManager.GetSingleton<Player>().trs.position.y + GameManager.GetSingleton<Player>().localVerticies[0].y);
+			trs.position = trs.position.SetY(Player.instance.trs.position.y + Player.instance.localVerticies[0].y);
 		}
 	}
 }

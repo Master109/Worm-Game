@@ -51,5 +51,10 @@ namespace Extensions
 			b2.Expand(expandB2);
 			return b1.Intersects(b2);
 		}
+		
+		public static Rect ToRect (this Bounds bounds)
+		{
+			return Rect.MinMaxRect(bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y);
+		}
 	}
 }

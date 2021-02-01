@@ -56,10 +56,15 @@ MonoBehaviour:
   edgeCollider: {fileID: 6867000816181127651}
   width: 0.1
   moveSpeed: 5
-  crashCheckDistance: 0.05
-  stampTexture: {fileID: 2800000, guid: af85694d25c563c438a0bdbccd95b770, type: 3}
+  crashCheckDistance: 0.2
   headTrs: {fileID: 6233130352242533610}
   headCollider: {fileID: 3427398929455565897}
+  headCheckTileRange: 5
+  headLineSegments:
+  - start: {x: 0, y: 0}
+    end: {x: 0, y: 0}
+  - start: {x: 0, y: 0}
+    end: {x: 0, y: 0}
 --- !u!50 &4091045783043636596
 Rigidbody2D:
   serializedVersion: 4
@@ -97,6 +102,10 @@ EdgeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_EdgeRadius: 0.5
   m_Points: []
+  m_AdjacentStartPoint: {x: 0, y: 0}
+  m_AdjacentEndPoint: {x: 0, y: 0}
+  m_UseAdjacentStartPoint: 0
+  m_UseAdjacentEndPoint: 0
 --- !u!120 &1603327124840762577
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -112,6 +121,7 @@ LineRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -239,6 +249,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -299,6 +310,6 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 0, y: 1}
-      - {x: -0.5785, y: 0}
+    - - {x: -0.5785, y: 0}
+      - {x: 0, y: 1}
       - {x: 0.5785, y: 0}

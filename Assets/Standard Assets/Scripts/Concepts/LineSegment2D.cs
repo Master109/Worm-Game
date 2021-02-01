@@ -36,7 +36,16 @@ public class LineSegment2D
 		return (end - start).GetFacingAngle();
 	}
 
-	public bool DoIIntersectWith (LineSegment2D other, bool shouldIncludeEndPoints)
+	public bool DoIIntersectWith (Rect rect, bool shouldIncludeEndPoints = true)
+	{
+		LineSegment2D leftEdge = new LineSegment2D(rect.min, new Vector2(rect.xMin, rect.yMax));
+		LineSegment2D rightEdge = new LineSegment2D(rect.max, new Vector2(rect.xMax, rect.yMin));
+		LineSegment2D bottomEdge = new LineSegment2D(rect.min, new Vector2(rect.xMax, rect.yMin));
+		LineSegment2D topEdge = new LineSegment2D(rect.min, new Vector2(rect.xMax, rect.yMax));
+		return DoIIntersectWith(leftEdge) || DoIIntersectWith(rightEdge) || DoIIntersectWith(bottomEdge) || DoIIntersectWith(topEdge);
+	}
+
+	public bool DoIIntersectWith (LineSegment2D other, bool shouldIncludeEndPoints = true)
 	{
 		bool output = false;
 		float denominator = (other.end.y - other.start.y) * (end.x - start.x) - (other.end.x - other.start.x) * (end.y - start.y);

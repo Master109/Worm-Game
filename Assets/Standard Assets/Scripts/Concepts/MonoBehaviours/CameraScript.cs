@@ -50,7 +50,7 @@ namespace Worms
 		
 		public virtual void HandleViewSize ()
 		{
-			screenAspect = GameManager.GetSingleton<GameManager>().gameViewRectTrs.rect.size.x / GameManager.GetSingleton<GameManager>().gameViewRectTrs.rect.size.y;
+			screenAspect = GameManager.instance.gameViewRectTrs.rect.size.x / GameManager.instance.gameViewRectTrs.rect.size.y;
 			camera.aspect = viewSize.x / viewSize.y;
 			camera.orthographicSize = Mathf.Min(viewSize.x / 2 / camera.aspect, viewSize.y / 2);
 			normalizedScreenViewRect = new Rect();

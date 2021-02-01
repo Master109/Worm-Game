@@ -71,7 +71,7 @@ namespace Worms
 			}
 	*/
 	[ExecuteInEditMode]
-	public class SaveAndLoadManager : MonoBehaviour
+	public class SaveAndLoadManager : SingletonMonoBehaviour<SaveAndLoadManager>
 	{
 		public static fsSerializer serializer = new fsSerializer();
 		// [HideInInspector]
@@ -160,9 +160,9 @@ namespace Worms
 		
 		public virtual void Save ()
 		{
-			if (GameManager.GetSingleton<SaveAndLoadManager>() != this)
+			if (SaveAndLoadManager.instance != this)
 			{
-				GameManager.GetSingleton<SaveAndLoadManager>().Save ();
+				SaveAndLoadManager.instance.Save ();
 				return;
 			}
 			Init ();
@@ -176,9 +176,9 @@ namespace Worms
 		
 		public virtual void Load ()
 		{
-			if (GameManager.GetSingleton<SaveAndLoadManager>() != this)
+			if (SaveAndLoadManager.instance != this)
 			{
-				GameManager.GetSingleton<SaveAndLoadManager>().Load ();
+				SaveAndLoadManager.instance.Load ();
 				return;
 			}
 			saveAndLoadObjectTypeDict.Clear();
