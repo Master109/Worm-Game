@@ -111,17 +111,17 @@ namespace Worms
 			if (cellPositions.Count > 0)
 			{
 				World.instance.tilemap.SetTiles(cellPositions.ToArray(), new TileBase[cellPositions.Count]);
-				for (int i = 0; i < World.tilemaps.Count; i ++)
-				{
-					Tilemap tilemap = World.tilemaps[i];
-					World.Island[] islands = World.instance.GetIslands(tilemap, false);
+				// for (int i = 0; i < World.tilemaps.Count; i ++)
+				// {
+					// Tilemap tilemap = World.tilemaps[i];
+					World.Island[] islands = World.instance.GetIslands(World.instance.tilemap, false);
 					for (int i2 = 0; i2 < islands.Length; i2 ++)
 					{
 						World.Island island = islands[i2];
 						if (!World.tilemaps.Contains(island.tilemap))
 							island.Split();
 					}
-				}
+				// }
 			}
 		}
 

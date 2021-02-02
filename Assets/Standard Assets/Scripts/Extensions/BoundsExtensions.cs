@@ -56,5 +56,12 @@ namespace Extensions
 		{
 			return Rect.MinMaxRect(bounds.min.x, bounds.min.y, bounds.max.x, bounds.max.y);
 		}
+
+		public static RectInt ToRectInt (this BoundsInt bounds)
+		{
+			RectInt output = new RectInt();
+			output.SetMinMax(bounds.min.ToVec2Int(), bounds.max.ToVec2Int());
+			return output;
+		}
 	}
 }

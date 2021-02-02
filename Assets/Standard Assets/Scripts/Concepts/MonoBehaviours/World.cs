@@ -13,11 +13,22 @@ namespace Worms
 		public Tilemap tilemap;
 		public _Tilemap tilemapPrefab;
 		public static List<Tilemap> tilemaps = new List<Tilemap>();
+		// public static List<Vector3Int> filledCellLocations = new List<Vector3Int>();
+		// public static Island[] islands = new Island[0];
 
 		void Start ()
 		{
 			tilemaps.Clear();
 			tilemaps.Add(tilemap);
+			// filledCellLocations.Clear();
+			// islands = new Island[1];
+			// Island island = new Island(new KeyValuePair<Vector3Int, TileBase>[0], tilemap);
+			// foreach (Vector3Int cellLocation in tilemap.cellBounds.allPositionsWithin)
+			// {
+			// 	if (tilemap.HasTile(cellLocation))
+			// 		filledCellLocations.Add(cellLocation);
+			// }
+			// islands[0] = island;
 		}
 
 		public Rect CellToRect (Vector2Int cellPosition)
@@ -32,53 +43,82 @@ namespace Worms
 		public Island[] GetIslands (Tilemap tilemap, bool diagonalsConnect)
 		{
 			List<Island> output = new List<Island>();
-			BoundsInt cellBounds = tilemap.cellBounds;
-			bool hasIsland = false;
-			foreach (Vector3Int cellLocation in cellBounds.allPositionsWithin)
+			Island island = new Island(new KeyValuePair<Vector3Int, TileBase>[0], tilemap);
+			List<Vector3Int> checkedCellLocations = new List<Vector3Int>();
+			List<Vector3Int> uncheckedCellLocations = new List<Vector3Int>();
+			foreach (Vector3Int cellLocation in tilemap.cellBounds.allPositionsWithin)
+				uncheckedCellLocations.Add(cellLocation);
+			uncheckedCellLocations.Remove(tilemap.cellBounds.min);
+			while (checkedCellLocations.Count < tilemap.cellBounds.size.x * tilemap.cellBounds.size.y)
+			// while (uncheckedCellLocations.Count > 0)
 			{
-				TileBase tile = tilemap.GetTile(cellLocation);
-				if (tile != null)
+				while (uncheckedCellLocations.Count > 0)
 				{
-					if ((!tilemap.HasTile(cellLocation + Vector3Int.left) && !tilemap.HasTile(cellLocation + Vector3Int.right) && !tilemap.HasTile(cellLocation + Vector3Int.down) && !tilemap.HasTile(cellLocation + Vector3Int.up)) || output.Count == 0)
-					{
-						Tilemap _tilemap = null;
-						if (!hasIsland)
-						{
-							_tilemap = tilemap;
-							hasIsland = true;
-						}
-						Island island = new Island(new KeyValuePair<Vector3Int, TileBase>[1] { new KeyValuePair<Vector3Int, TileBase>(cellLocation, tile) }, _tilemap);
-						output.Add(island);
-					}
-					else
-					{
-						for (int i = 0; i < output.Count; i ++)
-						{
-							Island island = output[i];
-							Dictionary<Vector3Int, TileBase> tilesDict = island.tilesDict;
-							if (!diagonalsConnect)
-							{
-								if (tilesDict.ContainsKey(cellLocation + Vector3Int.left) || tilesDict.ContainsKey(cellLocation + Vector3Int.right) || tilesDict.ContainsKey(cellLocation + Vector3Int.down) || tilesDict.ContainsKey(cellLocation + Vector3Int.up))
-								{
-									island.tilesDict.Add(cellLocation, tile);
-									output[i] = island;
-								}
-							}
-							else if (tilesDict.ContainsKey(cellLocation + Vector3Int.left) || tilesDict.ContainsKey(cellLocation + Vector3Int.right) || tilesDict.ContainsKey(cellLocation + Vector3Int.down) || tilesDict.ContainsKey(cellLocation + Vector3Int.up) || tilesDict.ContainsKey(cellLocation + Vector3Int.right + Vector3Int.up) || tilesDict.ContainsKey(cellLocation + Vector3Int.right + Vector3Int.down) || tilesDict.ContainsKey(cellLocation + Vector3Int.left + Vector3Int.up) || tilesDict.ContainsKey(cellLocation + Vector3Int.left + Vector3Int.down))
-							{
-								island.tilesDict.Add(cellLocation, tile);
-								output[i] = island;
-							}
-						}
-					}
+					Vector3Int cellLocation = uncheckedCellLocations[0];
+					TileBase tile = tilemap.GetTile(cellLocation);
+					if (tile != null)
+					// {
+						// if (uncheckedCellLocations.Contains(cellLocation))
+							island.tilesDict.Add(cellLocation, tile);
+						// CheckTile (tilemap.cellBounds.ToRectInt(), cellLocation, diagonalsConnect, ref uncheckedCellLocations, ref checkedCellLocations);
+					// }
+					uncheckedCellLocations.RemoveAt(0);
+					// if (uncheckedCellLocations.Count > 0)
+						// uncheckedCellLocations.RemoveAt(0);
+						// uncheckedCellLocations.Remove(cellLocation);
+					// if (!checkedCellLocations.Contains(cellLocation))
+						checkedCellLocations.Add(cellLocation);
 				}
+				output.Add(island);
+				// if (uncheckedCellLocations.Count > 0)
+				// {
+					island = new Island(new KeyValuePair<Vector3Int, TileBase>[0], null);
+					// uncheckedCellLocations.Add(uncheckedCellLocations[0]);
+				// }
 			}
 			return output.ToArray();
+		}
+
+		void CheckTile (RectInt checkRect, Vector3Int cellLocation, bool diagonalsConnect, ref List<Vector3Int> uncheckedCellLocations, ref List<Vector3Int> checkedCellLocations)
+		{
+			if (cellLocation.x > checkRect.xMin && !checkedCellLocations.Contains(cellLocation + Vector3Int.left) && !uncheckedCellLocations.Contains(cellLocation + Vector3Int.left))
+			{
+				uncheckedCellLocations.Add(cellLocation + Vector3Int.left);
+				// checkedCellLocations.Add(cellLocation + Vector3Int.left);
+			}
+			if (cellLocation.x < checkRect.xMax && !checkedCellLocations.Contains(cellLocation + Vector3Int.right) && !uncheckedCellLocations.Contains(cellLocation + Vector3Int.right))
+			{
+				uncheckedCellLocations.Add(cellLocation + Vector3Int.right);
+				// checkedCellLocations.Add(cellLocation + Vector3Int.right);
+			}
+			if (cellLocation.y > checkRect.yMin && !checkedCellLocations.Contains(cellLocation + Vector3Int.down) && !uncheckedCellLocations.Contains(cellLocation + Vector3Int.down))
+			{
+				uncheckedCellLocations.Add(cellLocation + Vector3Int.down);
+				// checkedCellLocations.Add(cellLocation + Vector3Int.down);
+			}
+			if (cellLocation.y < checkRect.yMax && !checkedCellLocations.Contains(cellLocation + Vector3Int.up) && !uncheckedCellLocations.Contains(cellLocation + Vector3Int.up))
+			{
+				uncheckedCellLocations.Add(cellLocation + Vector3Int.up);
+				// checkedCellLocations.Add(cellLocation + Vector3Int.up);
+			}
+			// if (diagonalsConnect)
+			// {
+			// 	if (!checkedCellLocations.Contains(cellLocation + Vector3Int.left + Vector3Int.up))
+			// 		remainingCellLocations.Add(cellLocation + Vector3Int.left + Vector3Int.up);
+			// 	if (!checkedCellLocations.Contains(cellLocation + Vector3Int.left + Vector3Int.up))
+			// 		remainingCellLocations.Add(cellLocation + Vector3Int.left + Vector3Int.up);
+			// 	if (!checkedCellLocations.Contains(cellLocation + Vector3Int.right + Vector3Int.down))
+			// 		remainingCellLocations.Add(cellLocation + Vector3Int.right + Vector3Int.down);
+			// 	if (!checkedCellLocations.Contains(cellLocation + Vector3Int.right + Vector3Int.up))
+			// 		remainingCellLocations.Add(cellLocation + Vector3Int.right + Vector3Int.up);
+			// }
+			checkedCellLocations.Add(cellLocation);
 		}
 
 		public struct Island
 		{
 			public Dictionary<Vector3Int, TileBase> tilesDict;
+			public List<Vector3Int> remainingCellLocations;
 			public Tilemap tilemap;
 
 			public Island (KeyValuePair<Vector3Int, TileBase>[] tiles, Tilemap tilemap)
@@ -89,6 +129,7 @@ namespace Worms
 					KeyValuePair<Vector3Int, TileBase> keyValuePair = tiles[i];
 					tilesDict.Add(keyValuePair.Key, keyValuePair.Value);
 				}
+				remainingCellLocations = new List<Vector3Int>();
 				this.tilemap = tilemap;
 			}
 
